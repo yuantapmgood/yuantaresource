@@ -103,30 +103,43 @@ if st.session_state.current_page == '總覽首頁':
     
     # --- 上半部：儀表板 (Gauge Chart) 顯示總資料量 ---
     # 假設目前資料庫最大容量設定為 1000 筆 (你可以依需求調整)
-    MAX_CAPACITY = 1000 
+# --- 上半部：儀表板 (Gauge Chart) 顯示總資料量 ---
+    # 假設目前資料庫最大容量設定為 1000 筆
+    MAX_CAPACITY = 500 
     
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = total_records,
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "總資源庫存量", 'font': {'size': 24, 'family': 'Noto Sans TC'}},
+        title = {'text': "元大總資源量", 'font': {'size': 28, 'family': 'Noto Sans TC', 'color': '#002D62'}},
         gauge = {
-            'axis': {'range': [None, MAX_CAPACITY], 'tickwidth': 1, 'tickcolor': "darkblue"},
-            'bar': {'color': "#002D62"},
+            'axis': {
+                'range': [None, MAX_CAPACITY], 
+                'tickwidth': 2, 
+                'tickcolor': "#002D62",
+                'tickfont': {'size': 14} # 稍微縮小刻度數字，避免擁擠
+            },
+            'bar': {'color': "rgba(0,0,0,0)"}, # 隱藏預設的進度條，我們改用指針
             'bgcolor': "white",
             'borderwidth': 2,
-            'bordercolor': "gray",
+            'bordercolor': "#E5E7EB",
             'steps': [
-                {'range': [0, MAX_CAPACITY*0.3], 'color': '#DBEAFE'},    # 淺藍
-                {'range': [MAX_CAPACITY*0.3, MAX_CAPACITY*0.7], 'color': '#93C5FD'}, # 中藍
-                {'range': [MAX_CAPACITY*0.7, MAX_CAPACITY], 'color': '#3B82F6'}     # 深藍
+                # 改成單一乾淨的淺藍色背景
+                {'range': [0, MAX_CAPACITY], 'color': '#F0F4F8'} 
             ],
+            'threshold': {
+                # 這裡就是畫出那個「箭頭/指針」的關鍵設定
+                'line': {'color': "#002D62", 'width': 8},
+                'thickness': 0.75,
+                'value': total_records
+            }
         }
     ))
     
     fig.update_layout(
-        height=350,
-        margin=dict(t=50, b=0, l=0, r=0),
+        height=380, # 稍微增加高度
+        # 調整邊界，特別是左右(l, r)和底部(b)，避免文字被截斷
+        margin=dict(t=80, b=40, l=40, r=40), 
         paper_bgcolor='rgba(0,0,0,0)',
         font={'family': "Noto Sans TC"}
     )
