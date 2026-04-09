@@ -46,8 +46,9 @@ st.markdown("""
     }
 
     /* 壓縮首頁標題與圖表之間的間距 */
-    .block-container { padding-top: 1rem !important; }
-    h1 { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    .block-container { padding-top: 3rem !important; padding-bottom: 0 !important; }
+    h1 { margin-top: 0 !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    iframe { margin-top: -1rem !important; }
 
     /* 隱藏預設的側邊欄選單符號 */
     [data-testid="collapsedControl"] { display: none; }
