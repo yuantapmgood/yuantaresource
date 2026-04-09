@@ -45,6 +45,10 @@ st.markdown("""
         padding-top: 8px;
     }
 
+    /* 壓縮首頁標題與圖表之間的間距 */
+    .block-container { padding-top: 1rem !important; }
+    h1 { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+
     /* 隱藏預設的側邊欄選單符號 */
     [data-testid="collapsedControl"] { display: none; }
     </style>
@@ -196,8 +200,7 @@ def make_mini_gauge(label, value, max_val, colors):
 # 6. 畫面邏輯 - 總覽首頁
 # ==========================================
 if st.session_state.current_page == '總覽首頁':
-    st.markdown("<h1 style='text-align: center;'>元大證券國金 - 資源總覽</h1>", unsafe_allow_html=True)
-    st.markdown("---")
+    st.markdown("<h1 style='text-align: center; margin-bottom: 0; padding-bottom: 0;'>元大證券國金 - 資源總覽</h1>", unsafe_allow_html=True)
 
     # 讀取各板塊數量
     db_counts = {}
