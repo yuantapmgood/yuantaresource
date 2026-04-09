@@ -196,7 +196,7 @@ def make_mini_gauge(label, value, max_val, colors):
 # 6. 畫面邏輯 - 總覽首頁
 # ==========================================
 if st.session_state.current_page == '總覽首頁':
-    st.title("🏦 元大證券國金 - 資源總覽")
+    st.markdown("<h1 style='text-align: center;'>元大證券國金 - 資源總覽</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
     # 讀取各板塊數量
@@ -210,10 +210,7 @@ if st.session_state.current_page == '總覽首頁':
 
     MAX_CAPACITY = 500
 
-    # 標題放在圖表上方（用 HTML，不放在 ECharts 內）
-    st.markdown('<p class="gauge-title">📊 元大總資源量</p>', unsafe_allow_html=True)
-
-    # --- 主 Gauge（title 關掉，只顯示數字）---
+    # --- 主 Gauge ---
     gauge_option = {
         "backgroundColor": "transparent",
         "series": [{
@@ -263,8 +260,15 @@ if st.session_state.current_page == '總覽首頁':
                 "size": 14,
                 "itemStyle": {"color": "#C0392B"}
             },
-            # 標題關掉，改用外部 HTML
-            "title": {"show": False},
+            # 標題放回圖表內
+            "title": {
+                "show": True,
+                "offsetCenter": [0, "-20%"],
+                "color": "#002D62",
+                "fontSize": 20,
+                "fontWeight": "bold",
+                "fontFamily": "Noto Sans TC"
+            },
             # 數字放在弧形正下方中央
             "detail": {
                 "valueAnimation": True,
@@ -275,7 +279,7 @@ if st.session_state.current_page == '總覽首頁':
                 "fontFamily": "Noto Sans TC",
                 "offsetCenter": [0, "30%"]
             },
-            "data": [{"value": total_records, "name": ""}]
+            "data": [{"value": total_records, "name": "總資源量"}]
         }]
     }
 
@@ -283,7 +287,6 @@ if st.session_state.current_page == '總覽首頁':
 
     # --- 四個小 Gauge 板塊 ---
     st.markdown("#### 各板塊資料量")
-    col1, col2, col3, col4 = st.columns(4)
     for col, (cat, label) in zip([col1, col2, col3, col4], CATEGORY_LABELS.items()):
         with col:
             mini_opt = make_mini_gauge(
@@ -295,7 +298,7 @@ if st.session_state.current_page == '總覽首頁':
             st_echarts(options=mini_opt, height="200px")
 
     st.markdown("---")
-    st.write("### 🚀 快速進入板塊 (點擊下方方塊)")
+    st.write("### 快速進入板塊 (點擊下方方塊)")
 
     # --- 四大方塊導航 ---
     col1, col2 = st.columns(2)
