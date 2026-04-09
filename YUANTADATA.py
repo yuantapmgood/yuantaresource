@@ -26,7 +26,7 @@ st.markdown("""
     div.stButton > button p {
         font-size: 26px !important; 
         font-weight: 700 !important;
-        color: #002D62; /* 元大藍 */
+        color: #002D62;
     }
     div.stButton > button:hover {
         border-color: #002D62;
@@ -35,6 +35,24 @@ st.markdown("""
         transform: translateY(-2px);
     }
     
+    /* st.metric 卡片樣式美化 */
+    [data-testid="metric-container"] {
+        background-color: #EBF3FB;
+        border: 1px solid #B5D4F4;
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+    [data-testid="metric-container"] label {
+        color: #185FA5 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+    }
+    [data-testid="metric-container"] [data-testid="stMetricValue"] {
+        color: #002D62 !important;
+        font-size: 32px !important;
+        font-weight: 700 !important;
+    }
+
     /* 隱藏預設的側邊欄選單符號 */
     [data-testid="collapsedControl"] { display: none; }
     </style>
@@ -58,6 +76,14 @@ DEFAULT_COLUMNS = {
     '論壇講師': ['專家', '曾舉辦議題'],
     '專家領域': ['專家', '內容摘要', '相關標的'],
     '研究資源': ['上手', '資源類型']
+}
+
+# 四大板塊的顯示名稱（卡片用）
+CATEGORY_LABELS = {
+    'IR 會議公司名單': 'IR 會議公司',
+    '論壇講師':       '論壇講師',
+    '專家領域':       '專家領域',
+    '研究資源':       '研究資源'
 }
 
 # ==========================================
@@ -101,56 +127,69 @@ if st.session_state.current_page == '總覽首頁':
         db_counts[cat] = count
         total_records += count
     
-    # --- 上半部：儀表板 (Gauge Chart) 顯示總資料量 ---
-    # 假設目前資料庫最大容量設定為 1000 筆 (你可以依需求調整)
-# --- 上半部：儀表板 (Gauge Chart) 顯示總資料量 ---
-    # 假設目前資料庫最大容量設定為 1000 筆
-    MAX_CAPACITY = 500 
-    
+    # --- Gauge Chart ---
+    MAX_CAPACITY = 500
+
     fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = total_records,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "元大總資源量", 'font': {'size': 28, 'family': 'Noto Sans TC', 'color': '#002D62'}},
-        gauge = {
+        mode="gauge+number",
+        value=total_records,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        title={
+            'text': "元大總資源量",
+            'font': {'size': 28, 'family': 'Noto Sans TC', 'color': '#002D62'}
+        },
+        number={
+            'font': {'size': 48, 'family': 'Noto Sans TC', 'color': '#002D62'},
+            'suffix': ' 筆'
+        },
+        gauge={
             'axis': {
-                'range': [None, MAX_CAPACITY], 
-                'tickwidth': 2, 
-                'tickcolor': "#002D62",
-                'tickfont': {'size': 14} # 稍微縮小刻度數字，避免擁擠
+                'range': [None, MAX_CAPACITY],
+                'tickwidth': 1,
+                'tickcolor': "#B5D4F4",
+                'tickfont': {'size': 13, 'color': '#185FA5'}
             },
-            'bar': {'color': "rgba(0,0,0,0)"}, # 隱藏預設的進度條，我們改用指針
-            'bgcolor': "white",
-            'borderwidth': 2,
-            'bordercolor': "#E5E7EB",
+            'bar': {'color': "#185FA5", 'thickness': 0.25},
+            'bgcolor': "#E6F1FB",
+            'borderwidth': 1,
+            'bordercolor': "#B5D4F4",
             'steps': [
-                # 改成單一乾淨的淺藍色背景
-                {'range': [0, MAX_CAPACITY], 'color': '#F0F4F8'} 
+                {'range': [0, MAX_CAPACITY * 0.5],  'color': '#E6F1FB'},
+                {'range': [MAX_CAPACITY * 0.5, MAX_CAPACITY * 0.8], 'color': '#B5D4F4'},
+                {'range': [MAX_CAPACITY * 0.8, MAX_CAPACITY], 'color': '#85B7EB'}
             ],
             'threshold': {
-                # 這裡就是畫出那個「箭頭/指針」的關鍵設定
-                'line': {'color': "#002D62", 'width': 8},
+                'line': {'color': "#C0392B", 'width': 6},   # 紅色指針
                 'thickness': 0.75,
                 'value': total_records
             }
         }
     ))
-    
+
     fig.update_layout(
-        height=380, # 稍微增加高度
-        # 調整邊界，特別是左右(l, r)和底部(b)，避免文字被截斷
-        margin=dict(t=80, b=40, l=40, r=40), 
+        height=380,
+        margin=dict(t=80, b=40, l=40, r=40),
         paper_bgcolor='rgba(0,0,0,0)',
-        font={'family': "Noto Sans TC"}
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'family': "Noto Sans TC", 'color': '#002D62'}
     )
+
     st.plotly_chart(fig, use_container_width=True)
-    
+
+    # --- 四大板塊數字卡片 ---
+    st.markdown("#### 📊 各板塊資料量")
+    col1, col2, col3, col4 = st.columns(4)
+    for col, (cat, label) in zip([col1, col2, col3, col4], CATEGORY_LABELS.items()):
+        with col:
+            st.metric(label=label, value=f"{db_counts[cat]} 筆")
+
+    st.markdown("---")
     st.write("### 🚀 快速進入板塊 (點擊下方方塊)")
-    
-    # --- 下半部：四大方塊導航 ---
+
+    # --- 四大方塊導航 ---
     col1, col2 = st.columns(2)
     categories = list(FILE_MAP.keys())
-    
+
     for i, cat in enumerate(categories):
         target_col = col1 if i % 2 == 0 else col2
         with target_col:
@@ -176,18 +215,15 @@ else:
             df = df[df["市場"] == market_filter]
 
     st.markdown("---")
-    
-    # --- 表格顯示優化：自動換行與調整欄寬 ---
-    # 將 Pandas DataFrame 轉換為帶有 CSS 樣式的格式
+
     styled_df = df.style.set_properties(**{
-        'white-space': 'pre-wrap',       # 允許文字自動換行
-        'text-align': 'left',            # 文字靠左對齊
-        'min-width': '150px'             # 設定欄位最小寬度
+        'white-space': 'pre-wrap',
+        'text-align': 'left',
+        'min-width': '150px'
     })
-    
-    # 顯示表格，並取消隱藏 index (因為 styled DataFrame hide_index 參數用法不同)
+
     st.dataframe(
-        styled_df, 
-        use_container_width=True, # 讓表格填滿畫面寬度
-        height=600                # 給予足夠的高度讓換行的內容可以顯示
+        styled_df,
+        use_container_width=True,
+        height=600
     )
