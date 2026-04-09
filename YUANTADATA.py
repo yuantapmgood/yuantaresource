@@ -35,6 +35,16 @@ st.markdown("""
         transform: translateY(-2px);
     }
 
+    /* Gauge 標題樣式 */
+    .gauge-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #002D62;
+        margin-bottom: 0px;
+        padding-top: 8px;
+    }
+
     /* 隱藏預設的側邊欄選單符號 */
     [data-testid="collapsedControl"] { display: none; }
     </style>
@@ -67,12 +77,19 @@ CATEGORY_LABELS = {
     '研究資源':       '研究資源'
 }
 
-# 每個板塊的滿格上限（用於小 gauge 比例）
 CATEGORY_MAX = {
     'IR 會議公司名單': 200,
     '論壇講師':       100,
     '專家領域':       100,
     '研究資源':       100
+}
+
+# 四個板塊各自的配色 [淺色, 中色, 深色]
+CATEGORY_COLORS = {
+    'IR 會議公司名單': ["#E8F5E9", "#81C784", "#2E7D32"],   # 綠色系
+    '論壇講師':       ["#FFF3E0", "#FFB74D", "#E65100"],   # 橘色系
+    '專家領域':       ["#F3E5F5", "#BA68C8", "#6A1B9A"],   # 紫色系
+    '研究資源':       ["#E0F7FA", "#4DD0E1", "#00695C"],   # 青色系
 }
 
 # ==========================================
@@ -103,7 +120,8 @@ with st.sidebar:
 # ==========================================
 # 5. 小 Gauge 產生器（四個板塊用）
 # ==========================================
-def make_mini_gauge(label, value, max_val):
+def make_mini_gauge(label, value, max_val, colors):
+    light, mid, dark = colors
     return {
         "backgroundColor": "transparent",
         "series": [{
@@ -125,24 +143,24 @@ def make_mini_gauge(label, value, max_val):
                 "lineStyle": {
                     "width": 16,
                     "color": [
-                        [0.5,  "#E6F1FB"],
-                        [0.8,  "#B5D4F4"],
-                        [1.0,  "#85B7EB"]
+                        [0.5, light],
+                        [0.8, mid],
+                        [1.0, dark]
                     ]
                 }
             },
             "axisTick": {
                 "distance": -16,
                 "splitNumber": 4,
-                "lineStyle": {"color": "#185FA5", "width": 1}
+                "lineStyle": {"color": dark, "width": 1}
             },
             "splitLine": {
                 "distance": -16,
                 "length": 10,
-                "lineStyle": {"color": "#185FA5", "width": 2}
+                "lineStyle": {"color": dark, "width": 2}
             },
             "axisLabel": {
-                "color": "#185FA5",
+                "color": dark,
                 "fontSize": 10,
                 "distance": 4,
                 "fontFamily": "Noto Sans TC"
@@ -156,16 +174,16 @@ def make_mini_gauge(label, value, max_val):
             "detail": {
                 "valueAnimation": True,
                 "formatter": "{value} 筆",
-                "color": "#002D62",
+                "color": dark,
                 "fontSize": 18,
                 "fontWeight": "bold",
                 "fontFamily": "Noto Sans TC",
-                "offsetCenter": [0, "15%"]
+                "offsetCenter": [0, "20%"]
             },
             "title": {
                 "show": True,
                 "offsetCenter": [0, "-25%"],
-                "color": "#185FA5",
+                "color": dark,
                 "fontSize": 13,
                 "fontWeight": "bold",
                 "fontFamily": "Noto Sans TC"
@@ -192,7 +210,10 @@ if st.session_state.current_page == '總覽首頁':
 
     MAX_CAPACITY = 500
 
-    # --- 主 Gauge ---
+    # 標題放在圖表上方（用 HTML，不放在 ECharts 內）
+    st.markdown('<p class="gauge-title">📊 元大總資源量</p>', unsafe_allow_html=True)
+
+    # --- 主 Gauge（title 關掉，只顯示數字）---
     gauge_option = {
         "backgroundColor": "transparent",
         "series": [{
@@ -203,7 +224,7 @@ if st.session_state.current_page == '總覽首頁':
             "max": MAX_CAPACITY,
             "splitNumber": 5,
             "radius": "90%",
-            "center": ["50%", "75%"],
+            "center": ["50%", "80%"],
             "pointer": {
                 "show": True,
                 "length": "70%",
@@ -242,39 +263,34 @@ if st.session_state.current_page == '總覽首頁':
                 "size": 14,
                 "itemStyle": {"color": "#C0392B"}
             },
-            # 數值往下移，避免被指針蓋住
+            # 標題關掉，改用外部 HTML
+            "title": {"show": False},
+            # 數字放在弧形正下方中央
             "detail": {
                 "valueAnimation": True,
                 "formatter": "{value} 筆",
                 "color": "#002D62",
-                "fontSize": 36,
+                "fontSize": 40,
                 "fontWeight": "bold",
                 "fontFamily": "Noto Sans TC",
-                "offsetCenter": [0, "20%"]
+                "offsetCenter": [0, "30%"]
             },
-            "title": {
-                "show": True,
-                "offsetCenter": [0, "-10%"],
-                "color": "#002D62",
-                "fontSize": 20,
-                "fontWeight": "bold",
-                "fontFamily": "Noto Sans TC"
-            },
-            "data": [{"value": total_records, "name": "元大總資源量"}]
+            "data": [{"value": total_records, "name": ""}]
         }]
     }
 
-    st_echarts(options=gauge_option, height="380px")
+    st_echarts(options=gauge_option, height="360px")
 
     # --- 四個小 Gauge 板塊 ---
-    st.markdown("#### 📊 各板塊資料量")
+    st.markdown("#### 各板塊資料量")
     col1, col2, col3, col4 = st.columns(4)
     for col, (cat, label) in zip([col1, col2, col3, col4], CATEGORY_LABELS.items()):
         with col:
             mini_opt = make_mini_gauge(
                 label=label,
                 value=db_counts[cat],
-                max_val=CATEGORY_MAX[cat]
+                max_val=CATEGORY_MAX[cat],
+                colors=CATEGORY_COLORS[cat]
             )
             st_echarts(options=mini_opt, height="200px")
 
