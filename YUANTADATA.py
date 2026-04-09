@@ -287,6 +287,7 @@ if st.session_state.current_page == '總覽首頁':
 
     # --- 四個小 Gauge 板塊 ---
     st.markdown("#### 各板塊資料量")
+    col1, col2, col3, col4 = st.columns(4)
     for col, (cat, label) in zip([col1, col2, col3, col4], CATEGORY_LABELS.items()):
         with col:
             mini_opt = make_mini_gauge(
