@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 import os
+from streamlit_echarts import st_echarts
 
 # ==========================================
 # 1. 頁面與視覺設定
@@ -78,7 +78,6 @@ DEFAULT_COLUMNS = {
     '研究資源': ['上手', '資源類型']
 }
 
-# 四大板塊的顯示名稱（卡片用）
 CATEGORY_LABELS = {
     'IR 會議公司名單': 'IR 會議公司',
     '論壇講師':       '論壇講師',
@@ -101,7 +100,7 @@ def load_data(category_name):
         return pd.DataFrame(columns=DEFAULT_COLUMNS[category_name])
 
 # ==========================================
-# 4. 側邊欄 (僅顯示返回首頁按鈕)
+# 4. 側邊欄
 # ==========================================
 with st.sidebar:
     st.title("導覽列")
@@ -117,8 +116,8 @@ with st.sidebar:
 if st.session_state.current_page == '總覽首頁':
     st.title("🏦 元大證券國金 - 資源總覽")
     st.markdown("---")
-    
-    # 讀取所有資料庫的數量
+
+    # 讀取各板塊數量
     db_counts = {}
     total_records = 0
     for cat in FILE_MAP.keys():
@@ -126,55 +125,100 @@ if st.session_state.current_page == '總覽首頁':
         count = len(df_temp)
         db_counts[cat] = count
         total_records += count
-    
-    # --- Gauge Chart ---
+
     MAX_CAPACITY = 500
 
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=total_records,
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={
-            'text': "元大總資源量",
-            'font': {'size': 28, 'family': 'Noto Sans TC', 'color': '#002D62'}
-        },
-        number={
-            'font': {'size': 48, 'family': 'Noto Sans TC', 'color': '#002D62'},
-            'suffix': ' 筆'
-        },
-        gauge={
-            'axis': {
-                'range': [None, MAX_CAPACITY],
-                'tickwidth': 1,
-                'tickcolor': "#B5D4F4",
-                'tickfont': {'size': 13, 'color': '#185FA5'}
-            },
-            'bar': {'color': "#185FA5", 'thickness': 0.25},
-            'bgcolor': "#E6F1FB",
-            'borderwidth': 1,
-            'bordercolor': "#B5D4F4",
-            'steps': [
-                {'range': [0, MAX_CAPACITY * 0.5],  'color': '#E6F1FB'},
-                {'range': [MAX_CAPACITY * 0.5, MAX_CAPACITY * 0.8], 'color': '#B5D4F4'},
-                {'range': [MAX_CAPACITY * 0.8, MAX_CAPACITY], 'color': '#85B7EB'}
-            ],
-            'threshold': {
-                'line': {'color': "#C0392B", 'width': 6},   # 紅色指針
-                'thickness': 0.75,
-                'value': total_records
+    # --- ECharts Gauge ---
+    gauge_option = {
+        "backgroundColor": "transparent",
+        "series": [
+            {
+                "type": "gauge",
+                "startAngle": 180,
+                "endAngle": 0,
+                "min": 0,
+                "max": MAX_CAPACITY,
+                "splitNumber": 5,
+                "radius": "90%",
+                "center": ["50%", "70%"],
+
+                # 指針（紅色）
+                "pointer": {
+                    "show": True,
+                    "length": "70%",
+                    "width": 6,
+                    "itemStyle": {
+                        "color": "#C0392B"
+                    }
+                },
+
+                # 弧形背景分三段漸層藍
+                "axisLine": {
+                    "lineStyle": {
+                        "width": 30,
+                        "color": [
+                            [0.5,  "#E6F1FB"],
+                            [0.8,  "#B5D4F4"],
+                            [1.0,  "#85B7EB"]
+                        ]
+                    }
+                },
+
+                # 刻度線
+                "axisTick": {
+                    "distance": -30,
+                    "splitNumber": 5,
+                    "lineStyle": {"color": "#185FA5", "width": 1}
+                },
+                "splitLine": {
+                    "distance": -30,
+                    "length": 14,
+                    "lineStyle": {"color": "#185FA5", "width": 2}
+                },
+
+                # 刻度數字
+                "axisLabel": {
+                    "color": "#185FA5",
+                    "fontSize": 13,
+                    "distance": 8,
+                    "fontFamily": "Noto Sans TC"
+                },
+
+                # 中心圓點（紅色配合指針）
+                "anchor": {
+                    "show": True,
+                    "showAbove": True,
+                    "size": 14,
+                    "itemStyle": {"color": "#C0392B"}
+                },
+
+                # 數值顯示
+                "detail": {
+                    "valueAnimation": True,
+                    "formatter": "{value} 筆",
+                    "color": "#002D62",
+                    "fontSize": 36,
+                    "fontWeight": "bold",
+                    "fontFamily": "Noto Sans TC",
+                    "offsetCenter": [0, "-15%"]
+                },
+
+                # 標題
+                "title": {
+                    "show": True,
+                    "offsetCenter": [0, "-40%"],
+                    "color": "#002D62",
+                    "fontSize": 20,
+                    "fontWeight": "bold",
+                    "fontFamily": "Noto Sans TC"
+                },
+
+                "data": [{"value": total_records, "name": "元大總資源量"}]
             }
-        }
-    ))
+        ]
+    }
 
-    fig.update_layout(
-        height=380,
-        margin=dict(t=80, b=40, l=40, r=40),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font={'family': "Noto Sans TC", 'color': '#002D62'}
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
+    st_echarts(options=gauge_option, height="400px")
 
     # --- 四大板塊數字卡片 ---
     st.markdown("#### 📊 各板塊資料量")
