@@ -13,7 +13,7 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
     html, body, [class*="css"]  { font-family: 'Noto Sans TC', sans-serif; }
     .stApp { background-color: #F8FAFC; }
-    
+
     /* 大方塊按鈕樣式 */
     div.stButton > button {
         height: 140px;
@@ -21,10 +21,10 @@ st.markdown("""
         border: 2px solid #E5E7EB;
         background-color: white;
         transition: 0.3s;
-        margin-bottom: 20px; 
+        margin-bottom: 20px;
     }
     div.stButton > button p {
-        font-size: 26px !important; 
+        font-size: 26px !important;
         font-weight: 700 !important;
         color: #002D62;
     }
@@ -33,24 +33,6 @@ st.markdown("""
         background-color: #F0F4F8;
         box-shadow: 0 8px 20px rgba(0, 45, 98, 0.15);
         transform: translateY(-2px);
-    }
-    
-    /* st.metric 卡片樣式美化 */
-    [data-testid="metric-container"] {
-        background-color: #EBF3FB;
-        border: 1px solid #B5D4F4;
-        border-radius: 12px;
-        padding: 16px 20px;
-    }
-    [data-testid="metric-container"] label {
-        color: #185FA5 !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-    }
-    [data-testid="metric-container"] [data-testid="stMetricValue"] {
-        color: #002D62 !important;
-        font-size: 32px !important;
-        font-weight: 700 !important;
     }
 
     /* 隱藏預設的側邊欄選單符號 */
@@ -66,16 +48,16 @@ if 'current_page' not in st.session_state:
 
 FILE_MAP = {
     'IR 會議公司名單': 'IR會議公司名單.csv',
-    '論壇講師': '論壇講師.csv',
-    '專家領域': '專家領域.csv',
-    '研究資源': '研究資源.csv'
+    '論壇講師':       '論壇講師.csv',
+    '專家領域':       '專家領域.csv',
+    '研究資源':       '研究資源.csv'
 }
 
 DEFAULT_COLUMNS = {
     'IR 會議公司名單': ['市場', '公司', 'Ticker'],
-    '論壇講師': ['專家', '曾舉辦議題'],
-    '專家領域': ['專家', '內容摘要', '相關標的'],
-    '研究資源': ['上手', '資源類型']
+    '論壇講師':       ['專家', '曾舉辦議題'],
+    '專家領域':       ['專家', '內容摘要', '相關標的'],
+    '研究資源':       ['上手', '資源類型']
 }
 
 CATEGORY_LABELS = {
@@ -83,6 +65,14 @@ CATEGORY_LABELS = {
     '論壇講師':       '論壇講師',
     '專家領域':       '專家領域',
     '研究資源':       '研究資源'
+}
+
+# 每個板塊的滿格上限（用於小 gauge 比例）
+CATEGORY_MAX = {
+    'IR 會議公司名單': 200,
+    '論壇講師':       100,
+    '專家領域':       100,
+    '研究資源':       100
 }
 
 # ==========================================
@@ -111,7 +101,81 @@ with st.sidebar:
     st.markdown("---")
 
 # ==========================================
-# 5. 畫面邏輯 - 總覽首頁
+# 5. 小 Gauge 產生器（四個板塊用）
+# ==========================================
+def make_mini_gauge(label, value, max_val):
+    return {
+        "backgroundColor": "transparent",
+        "series": [{
+            "type": "gauge",
+            "startAngle": 180,
+            "endAngle": 0,
+            "min": 0,
+            "max": max_val,
+            "splitNumber": 4,
+            "radius": "88%",
+            "center": ["50%", "68%"],
+            "pointer": {
+                "show": True,
+                "length": "65%",
+                "width": 4,
+                "itemStyle": {"color": "#C0392B"}
+            },
+            "axisLine": {
+                "lineStyle": {
+                    "width": 16,
+                    "color": [
+                        [0.5,  "#E6F1FB"],
+                        [0.8,  "#B5D4F4"],
+                        [1.0,  "#85B7EB"]
+                    ]
+                }
+            },
+            "axisTick": {
+                "distance": -16,
+                "splitNumber": 4,
+                "lineStyle": {"color": "#185FA5", "width": 1}
+            },
+            "splitLine": {
+                "distance": -16,
+                "length": 10,
+                "lineStyle": {"color": "#185FA5", "width": 2}
+            },
+            "axisLabel": {
+                "color": "#185FA5",
+                "fontSize": 10,
+                "distance": 4,
+                "fontFamily": "Noto Sans TC"
+            },
+            "anchor": {
+                "show": True,
+                "showAbove": True,
+                "size": 10,
+                "itemStyle": {"color": "#C0392B"}
+            },
+            "detail": {
+                "valueAnimation": True,
+                "formatter": "{value} 筆",
+                "color": "#002D62",
+                "fontSize": 18,
+                "fontWeight": "bold",
+                "fontFamily": "Noto Sans TC",
+                "offsetCenter": [0, "15%"]
+            },
+            "title": {
+                "show": True,
+                "offsetCenter": [0, "-25%"],
+                "color": "#185FA5",
+                "fontSize": 13,
+                "fontWeight": "bold",
+                "fontFamily": "Noto Sans TC"
+            },
+            "data": [{"value": value, "name": label}]
+        }]
+    }
+
+# ==========================================
+# 6. 畫面邏輯 - 總覽首頁
 # ==========================================
 if st.session_state.current_page == '總覽首頁':
     st.title("🏦 元大證券國金 - 資源總覽")
@@ -128,104 +192,91 @@ if st.session_state.current_page == '總覽首頁':
 
     MAX_CAPACITY = 500
 
-    # --- ECharts Gauge ---
+    # --- 主 Gauge ---
     gauge_option = {
         "backgroundColor": "transparent",
-        "series": [
-            {
-                "type": "gauge",
-                "startAngle": 180,
-                "endAngle": 0,
-                "min": 0,
-                "max": MAX_CAPACITY,
+        "series": [{
+            "type": "gauge",
+            "startAngle": 180,
+            "endAngle": 0,
+            "min": 0,
+            "max": MAX_CAPACITY,
+            "splitNumber": 5,
+            "radius": "90%",
+            "center": ["50%", "75%"],
+            "pointer": {
+                "show": True,
+                "length": "70%",
+                "width": 6,
+                "itemStyle": {"color": "#C0392B"}
+            },
+            "axisLine": {
+                "lineStyle": {
+                    "width": 30,
+                    "color": [
+                        [0.5,  "#E6F1FB"],
+                        [0.8,  "#B5D4F4"],
+                        [1.0,  "#85B7EB"]
+                    ]
+                }
+            },
+            "axisTick": {
+                "distance": -30,
                 "splitNumber": 5,
-                "radius": "90%",
-                "center": ["50%", "70%"],
-
-                # 指針（紅色）
-                "pointer": {
-                    "show": True,
-                    "length": "70%",
-                    "width": 6,
-                    "itemStyle": {
-                        "color": "#C0392B"
-                    }
-                },
-
-                # 弧形背景分三段漸層藍
-                "axisLine": {
-                    "lineStyle": {
-                        "width": 30,
-                        "color": [
-                            [0.5,  "#E6F1FB"],
-                            [0.8,  "#B5D4F4"],
-                            [1.0,  "#85B7EB"]
-                        ]
-                    }
-                },
-
-                # 刻度線
-                "axisTick": {
-                    "distance": -30,
-                    "splitNumber": 5,
-                    "lineStyle": {"color": "#185FA5", "width": 1}
-                },
-                "splitLine": {
-                    "distance": -30,
-                    "length": 14,
-                    "lineStyle": {"color": "#185FA5", "width": 2}
-                },
-
-                # 刻度數字
-                "axisLabel": {
-                    "color": "#185FA5",
-                    "fontSize": 13,
-                    "distance": 8,
-                    "fontFamily": "Noto Sans TC"
-                },
-
-                # 中心圓點（紅色配合指針）
-                "anchor": {
-                    "show": True,
-                    "showAbove": True,
-                    "size": 14,
-                    "itemStyle": {"color": "#C0392B"}
-                },
-
-                # 數值顯示
-                "detail": {
-                    "valueAnimation": True,
-                    "formatter": "{value} 筆",
-                    "color": "#002D62",
-                    "fontSize": 36,
-                    "fontWeight": "bold",
-                    "fontFamily": "Noto Sans TC",
-                    "offsetCenter": [0, "-15%"]
-                },
-
-                # 標題
-                "title": {
-                    "show": True,
-                    "offsetCenter": [0, "-40%"],
-                    "color": "#002D62",
-                    "fontSize": 20,
-                    "fontWeight": "bold",
-                    "fontFamily": "Noto Sans TC"
-                },
-
-                "data": [{"value": total_records, "name": "元大總資源量"}]
-            }
-        ]
+                "lineStyle": {"color": "#185FA5", "width": 1}
+            },
+            "splitLine": {
+                "distance": -30,
+                "length": 14,
+                "lineStyle": {"color": "#185FA5", "width": 2}
+            },
+            "axisLabel": {
+                "color": "#185FA5",
+                "fontSize": 13,
+                "distance": 8,
+                "fontFamily": "Noto Sans TC"
+            },
+            "anchor": {
+                "show": True,
+                "showAbove": True,
+                "size": 14,
+                "itemStyle": {"color": "#C0392B"}
+            },
+            # 數值往下移，避免被指針蓋住
+            "detail": {
+                "valueAnimation": True,
+                "formatter": "{value} 筆",
+                "color": "#002D62",
+                "fontSize": 36,
+                "fontWeight": "bold",
+                "fontFamily": "Noto Sans TC",
+                "offsetCenter": [0, "20%"]
+            },
+            "title": {
+                "show": True,
+                "offsetCenter": [0, "-10%"],
+                "color": "#002D62",
+                "fontSize": 20,
+                "fontWeight": "bold",
+                "fontFamily": "Noto Sans TC"
+            },
+            "data": [{"value": total_records, "name": "元大總資源量"}]
+        }]
     }
 
-    st_echarts(options=gauge_option, height="400px")
+    st_echarts(options=gauge_option, height="380px")
 
-    # --- 四大板塊數字卡片 ---
+    # --- 四個小 Gauge 板塊 ---
     st.markdown("#### 📊 各板塊資料量")
     col1, col2, col3, col4 = st.columns(4)
     for col, (cat, label) in zip([col1, col2, col3, col4], CATEGORY_LABELS.items()):
         with col:
-            st.metric(label=label, value=f"{db_counts[cat]} 筆")
+            mini_opt = make_mini_gauge(
+                label=label,
+                value=db_counts[cat],
+                max_val=CATEGORY_MAX[cat]
+            )
+            st_echarts(options=mini_opt, height="200px")
 
     st.markdown("---")
     st.write("### 🚀 快速進入板塊 (點擊下方方塊)")
@@ -233,7 +284,6 @@ if st.session_state.current_page == '總覽首頁':
     # --- 四大方塊導航 ---
     col1, col2 = st.columns(2)
     categories = list(FILE_MAP.keys())
-
     for i, cat in enumerate(categories):
         target_col = col1 if i % 2 == 0 else col2
         with target_col:
@@ -242,7 +292,7 @@ if st.session_state.current_page == '總覽首頁':
                 st.rerun()
 
 # ==========================================
-# 6. 畫面邏輯 - 獨立資料庫頁面 (純檢視)
+# 7. 畫面邏輯 - 獨立資料庫頁面 (純檢視)
 # ==========================================
 else:
     selected_category = st.session_state.current_page
