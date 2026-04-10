@@ -89,6 +89,14 @@ CATEGORY_MAX = {
     '研究資源':       100
 }
 
+# 四個板塊各自的專屬單位設定
+CATEGORY_UNITS = {
+    'IR 會議公司名單': '家',
+    '論壇講師':       '位',
+    '專家領域':       '位',
+    '研究資源':       '筆'
+}
+
 # 四個板塊各自的配色 [淺色, 中色, 深色]
 CATEGORY_COLORS = {
     'IR 會議公司名單': ["#E8F5E9", "#81C784", "#2E7D32"],   # 綠色系
@@ -123,9 +131,9 @@ with st.sidebar:
     st.markdown("---")
 
 # ==========================================
-# 5. 小 Gauge 產生器（四個板塊用）
+# 5. 小 Gauge 產生器（四個板塊用）- 加入 unit 參數
 # ==========================================
-def make_mini_gauge(label, value, max_val, colors):
+def make_mini_gauge(label, value, max_val, colors, unit):
     light, mid, dark = colors
     return {
         "backgroundColor": "transparent",
@@ -178,7 +186,7 @@ def make_mini_gauge(label, value, max_val, colors):
             },
             "detail": {
                 "valueAnimation": True,
-                "formatter": "{value} 筆",
+                "formatter": f"{{value}} {unit}",  # 動態替換為 家、位 或 筆
                 "color": dark,
                 "fontSize": 18,
                 "fontWeight": "bold",
@@ -215,6 +223,7 @@ if st.session_state.current_page == '總覽首頁':
     MAX_CAPACITY = 500
 
     # --- 主 Gauge ---
+    # (主圖表為彙總資料，維持「筆」為單位)
     gauge_option = {
         "backgroundColor": "transparent",
         "series": [{
@@ -264,7 +273,6 @@ if st.session_state.current_page == '總覽首頁':
                 "size": 14,
                 "itemStyle": {"color": "#C0392B"}
             },
-            # 標題放回圖表內
             "title": {
                 "show": True,
                 "offsetCenter": [0, "-20%"],
@@ -273,7 +281,6 @@ if st.session_state.current_page == '總覽首頁':
                 "fontWeight": "bold",
                 "fontFamily": "Noto Sans TC"
             },
-            # 數字放在弧形正下方中央
             "detail": {
                 "valueAnimation": True,
                 "formatter": "{value} 筆",
@@ -298,7 +305,8 @@ if st.session_state.current_page == '總覽首頁':
                 label=label,
                 value=db_counts[cat],
                 max_val=CATEGORY_MAX[cat],
-                colors=CATEGORY_COLORS[cat]
+                colors=CATEGORY_COLORS[cat],
+                unit=CATEGORY_UNITS[cat]  # 傳入專屬的單位
             )
             st_echarts(options=mini_opt, height="200px")
 
