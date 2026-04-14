@@ -2,34 +2,11 @@ import streamlit as st
 import pandas as pd
 import os
 from streamlit_echarts import st_echarts
-import base64
 
-def set_background_from_local(image_path):
-    """讀取本地端圖片並設定為 Streamlit 背景"""
-    with open(image_path, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode()
-    
-    # 注入 CSS
-    page_bg_img = f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/png;base64,{encoded_string}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        /* 因為你的附圖資訊量很大，建議加上一層半透明的白色遮罩，才不會讓原本網站的字看不清楚 */
-        box-shadow: inset 0 0 0 2000px rgba(248, 250, 252, 0.5); 
-    }}
-    </style>
-    """
-    st.markdown(page_bg_img, unsafe_allow_html=True)
 # ==========================================
 # 1. 頁面與視覺設定
 # ==========================================
 st.set_page_config(page_title="元大證券國金-資源彙整", page_icon="🏦", layout="wide")
-
-# 請將檔名替換成你實際儲存的圖片檔名
-set_background_from_local('yuantaschedule.png')
 
 st.markdown("""
     <style>
@@ -56,6 +33,14 @@ st.markdown("""
         background-color: #F0F4F8;
         box-shadow: 0 8px 20px rgba(0, 45, 98, 0.15);
         transform: translateY(-2px);
+    }
+    
+    /* 針對行程按鈕特別增加高度對齊圖表 */
+    .schedule-btn div.stButton > button {
+        height: 250px !important; 
+        margin-top: 50px;
+        background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
+        border: 2px solid #B5D4F4;
     }
 
     /* Gauge 標題樣式 */
@@ -154,7 +139,7 @@ with st.sidebar:
     st.markdown("---")
 
 # ==========================================
-# 5. 小 Gauge 產生器（四個板塊用）- 加入 unit 參數
+# 5. 小 Gauge 產生器（四個板塊用）
 # ==========================================
 def make_mini_gauge(label, value, max_val, colors, unit):
     light, mid, dark = colors
@@ -209,7 +194,7 @@ def make_mini_gauge(label, value, max_val, colors, unit):
             },
             "detail": {
                 "valueAnimation": True,
-                "formatter": f"{{value}} {unit}",  # 動態替換為 家、位 或 筆
+                "formatter": f"{{value}} {unit}", 
                 "color": dark,
                 "fontSize": 18,
                 "fontWeight": "bold",
@@ -245,79 +230,89 @@ if st.session_state.current_page == '總覽首頁':
 
     MAX_CAPACITY = 500
 
-    # --- 主 Gauge ---
-    # (主圖表為彙總資料，維持「筆」為單位)
-    gauge_option = {
-        "backgroundColor": "transparent",
-        "series": [{
-            "type": "gauge",
-            "startAngle": 180,
-            "endAngle": 0,
-            "min": 0,
-            "max": MAX_CAPACITY,
-            "splitNumber": 5,
-            "radius": "90%",
-            "center": ["50%", "80%"],
-            "pointer": {
-                "show": True,
-                "length": "70%",
-                "width": 6,
-                "itemStyle": {"color": "#C0392B"}
-            },
-            "axisLine": {
-                "lineStyle": {
-                    "width": 30,
-                    "color": [
-                        [0.5,  "#E6F1FB"],
-                        [0.8,  "#B5D4F4"],
-                        [1.0,  "#85B7EB"]
-                    ]
-                }
-            },
-            "axisTick": {
-                "distance": -30,
-                "splitNumber": 5,
-                "lineStyle": {"color": "#185FA5", "width": 1}
-            },
-            "splitLine": {
-                "distance": -30,
-                "length": 14,
-                "lineStyle": {"color": "#185FA5", "width": 2}
-            },
-            "axisLabel": {
-                "color": "#185FA5",
-                "fontSize": 13,
-                "distance": 8,
-                "fontFamily": "Noto Sans TC"
-            },
-            "anchor": {
-                "show": True,
-                "showAbove": True,
-                "size": 14,
-                "itemStyle": {"color": "#C0392B"}
-            },
-            "title": {
-                "show": True,
-                "offsetCenter": [0, "-20%"],
-                "color": "#002D62",
-                "fontSize": 20,
-                "fontWeight": "bold",
-                "fontFamily": "Noto Sans TC"
-            },
-            "detail": {
-                "valueAnimation": True,
-                "formatter": "{value} 筆",
-                "color": "#002D62",
-                "fontSize": 40,
-                "fontWeight": "bold",
-                "fontFamily": "Noto Sans TC",
-                "offsetCenter": [0, "30%"]
-            },
-            "data": [{"value": total_records, "name": "總資源量"}]
-        }]
-    }
+    # 建立左右兩欄：左邊放 Gauge 圖表，右邊放行程表按鈕
+    top_col1, top_col2 = st.columns([1.2, 1])
 
-    st_echarts(options=gauge_option, height="360px")
+    with top_col1:
+        # --- 主 Gauge ---
+        gauge_option = {
+            "backgroundColor": "transparent",
+            "series": [{
+                "type": "gauge",
+                "startAngle": 180,
+                "endAngle": 0,
+                "min": 0,
+                "max": MAX_CAPACITY,
+                "splitNumber": 5,
+                "radius": "90%",
+                "center": ["50%", "80%"],
+                "pointer": {
+                    "show": True,
+                    "length": "70%",
+                    "width": 6,
+                    "itemStyle": {"color": "#C0392B"}
+                },
+                "axisLine": {
+                    "lineStyle": {
+                        "width": 30,
+                        "color": [
+                            [0.5,  "#E6F1FB"],
+                            [0.8,  "#B5D4F4"],
+                            [1.0,  "#85B7EB"]
+                        ]
+                    }
+                },
+                "axisTick": {
+                    "distance": -30,
+                    "splitNumber": 5,
+                    "lineStyle": {"color": "#185FA5", "width": 1}
+                },
+                "splitLine": {
+                    "distance": -30,
+                    "length": 14,
+                    "lineStyle": {"color": "#185FA5", "width": 2}
+                },
+                "axisLabel": {
+                    "color": "#185FA5",
+                    "fontSize": 13,
+                    "distance": 8,
+                    "fontFamily": "Noto Sans TC"
+                },
+                "anchor": {
+                    "show": True,
+                    "showAbove": True,
+                    "size": 14,
+                    "itemStyle": {"color": "#C0392B"}
+                },
+                "title": {
+                    "show": True,
+                    "offsetCenter": [0, "-20%"],
+                    "color": "#002D62",
+                    "fontSize": 20,
+                    "fontWeight": "bold",
+                    "fontFamily": "Noto Sans TC"
+                },
+                "detail": {
+                    "valueAnimation": True,
+                    "formatter": "{value} 筆",
+                    "color": "#002D62",
+                    "fontSize": 40,
+                    "fontWeight": "bold",
+                    "fontFamily": "Noto Sans TC",
+                    "offsetCenter": [0, "30%"]
+                },
+                "data": [{"value": total_records, "name": "總資源量"}]
+            }]
+        }
+        st_echarts(options=gauge_option, height="360px")
+
+    with top_col2:
+        # --- 行程大按鈕 ---
+        st.markdown('<div class="schedule-btn">', unsafe_allow_html=True)
+        if st.button("📅 點擊查看\n元大下半年行程", use_container_width=True, key="btn_schedule"):
+            st.session_state.current_page = "元大下半年行程"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # --- 四個小 Gauge 板塊 ---
     st.markdown("#### 各板塊資料量")
@@ -329,7 +324,7 @@ if st.session_state.current_page == '總覽首頁':
                 value=db_counts[cat],
                 max_val=CATEGORY_MAX[cat],
                 colors=CATEGORY_COLORS[cat],
-                unit=CATEGORY_UNITS[cat]  # 傳入專屬的單位
+                unit=CATEGORY_UNITS[cat] 
             )
             st_echarts(options=mini_opt, height="200px")
 
@@ -347,7 +342,20 @@ if st.session_state.current_page == '總覽首頁':
                 st.rerun()
 
 # ==========================================
-# 7. 畫面邏輯 - 獨立資料庫頁面 (純檢視)
+# 7. 畫面邏輯 - 新增的行程表專屬頁面
+# ==========================================
+elif st.session_state.current_page == "元大下半年行程":
+    st.title("📅 2026 下半年 論壇 & 參訪團統整")
+    st.markdown("---")
+    
+    # 【重點注意】請將 '你的圖片檔名.png' 換成你實際的圖片檔案名稱
+    try:
+        st.image("yuantaschedule.png", use_container_width=True)
+    except FileNotFoundError:
+        st.error("找不到圖片！請確認你已經將圖片放入專案資料夾，並在程式碼第 297 行更新為正確的檔名。")
+
+# ==========================================
+# 8. 畫面邏輯 - 獨立資料庫頁面 (四大板塊)
 # ==========================================
 else:
     selected_category = st.session_state.current_page
