@@ -35,10 +35,10 @@ st.markdown("""
         transform: translateY(-2px);
     }
     
-    /* 針對行程按鈕特別增加高度對齊圖表 */
+    /* 針對行程按鈕特別調整高度與對齊，加大 margin-top 把按鈕往下推 */
     .schedule-btn div.stButton > button {
-        height: 250px !important; 
-        margin-top: 50px;
+        height: 180px !important; 
+        margin-top: 100px !important; /* <--- 調整這裡，讓按鈕對齊左側儀表板的數字區 */
         background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
         border: 2px solid #B5D4F4;
     }
@@ -139,7 +139,7 @@ with st.sidebar:
     st.markdown("---")
 
 # ==========================================
-# 5. 小 Gauge 產生器（四個板塊用）
+# 5. 小 Gauge 產生器
 # ==========================================
 def make_mini_gauge(label, value, max_val, colors, unit):
     light, mid, dark = colors
@@ -219,7 +219,6 @@ def make_mini_gauge(label, value, max_val, colors, unit):
 if st.session_state.current_page == '總覽首頁':
     st.markdown("<h1 style='text-align: center; margin-bottom: 0; padding-bottom: 0;'>元大證券國金 - 資源總覽</h1>", unsafe_allow_html=True)
 
-    # 讀取各板塊數量
     db_counts = {}
     total_records = 0
     for cat in FILE_MAP.keys():
@@ -230,11 +229,9 @@ if st.session_state.current_page == '總覽首頁':
 
     MAX_CAPACITY = 500
 
-    # 建立左右兩欄：左邊放 Gauge 圖表，右邊放行程表按鈕
     top_col1, top_col2 = st.columns([1.2, 1])
 
     with top_col1:
-        # --- 主 Gauge ---
         gauge_option = {
             "backgroundColor": "transparent",
             "series": [{
@@ -307,14 +304,12 @@ if st.session_state.current_page == '總覽首頁':
         st_echarts(options=gauge_option, height="360px")
 
     with top_col2:
-        # --- 行程大按鈕 ---
         st.markdown('<div class="schedule-btn">', unsafe_allow_html=True)
         if st.button("📅 點擊查看\n元大下半年行程", use_container_width=True, key="btn_schedule"):
             st.session_state.current_page = "元大下半年行程"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- 四個小 Gauge 板塊 ---
     st.markdown("#### 各板塊資料量")
     col1, col2, col3, col4 = st.columns(4)
     for col, (cat, label) in zip([col1, col2, col3, col4], CATEGORY_LABELS.items()):
@@ -331,7 +326,6 @@ if st.session_state.current_page == '總覽首頁':
     st.markdown("---")
     st.write("### 快速進入板塊 (點擊下方方塊)")
 
-    # --- 四大方塊導航 ---
     col1, col2 = st.columns(2)
     categories = list(FILE_MAP.keys())
     for i, cat in enumerate(categories):
@@ -350,12 +344,12 @@ elif st.session_state.current_page == "元大下半年行程":
     
     # 【重點注意】請將 '你的圖片檔名.png' 換成你實際的圖片檔案名稱
     try:
-        st.image("yuantaschedule.png", use_container_width=True)
+        st.image("你的圖片檔名.png", use_container_width=True)
     except FileNotFoundError:
-        st.error("找不到圖片！請確認你已經將圖片放入專案資料夾，並在程式碼第 297 行更新為正確的檔名。")
+        st.error("找不到圖片！請確認你已經將圖片放入專案資料夾，並更新正確的檔名。")
 
 # ==========================================
-# 8. 畫面邏輯 - 獨立資料庫頁面 (四大板塊)
+# 8. 畫面邏輯 - 獨立資料庫頁面
 # ==========================================
 else:
     selected_category = st.session_state.current_page
