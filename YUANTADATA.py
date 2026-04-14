@@ -37,7 +37,7 @@ st.markdown("""
     
     /* 針對行程按鈕特別調整高度與對齊，加大 margin-top 把按鈕往下推 */
     .schedule-btn div.stButton > button {
-        height: 1800px !important; 
+        height: 180px !important; 
         margin-top: 100px !important; /* <--- 調整這裡，讓按鈕對齊左側儀表板的數字區 */
         background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
         border: 2px solid #B5D4F4;
