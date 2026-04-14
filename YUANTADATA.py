@@ -345,7 +345,7 @@ elif st.session_state.current_page == "元大下半年行程":
     
     # 【重點注意】請將 '你的圖片檔名.png' 換成你實際的圖片檔案名稱
     try:
-        st.image("你的圖片檔名.png", use_container_width=True)
+        st.image("yuantaschedule.png", use_container_width=True)
     except FileNotFoundError:
         st.error("找不到圖片！請確認你已經將圖片放入專案資料夾，並更新正確的檔名。")
 
