@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import base64
 from streamlit_echarts import st_echarts
 
 # ==========================================
@@ -8,11 +9,40 @@ from streamlit_echarts import st_echarts
 # ==========================================
 st.set_page_config(page_title="元大證券國金-資源彙整", page_icon="🏦", layout="wide")
 
+# 設定背景圖片的函數 (使用 Base64 確保 Streamlit 能順利讀取)
+def set_background(image_file):
+    if os.path.exists(image_file):
+        with open(image_file, "rb") as f:
+            encoded_string = base64.b64encode(f.read()).decode()
+        
+        # 加上半透明遮罩 rgba(248, 250, 252, 0.85)，數字 0.85 可自行調整透明度
+        page_bg_img = f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpeg;base64,{encoded_string}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: inset 0 0 0 2000px rgba(248, 250, 252, 0.85);
+        }}
+        </style>
+        """
+        st.markdown(page_bg_img, unsafe_allow_html=True)
+    else:
+        # 如果找不到圖片，預設為淺藍白色背景
+        st.markdown("""
+        <style>
+        .stApp { background-color: #F8FAFC; }
+        </style>
+        """, unsafe_allow_html=True)
+
+# 載入背景圖片
+set_background("background.jpg")
+
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
     html, body, [class*="css"]  { font-family: 'Noto Sans TC', sans-serif; }
-    .stApp { background-color: #F8FAFC; }
 
     /* 大方塊按鈕樣式 */
     div.stButton > button {
@@ -35,14 +65,6 @@ st.markdown("""
         transform: translateY(-2px);
     }
     
-    /* 針對行程按鈕特別調整高度與對齊，加大 margin-top 把按鈕往下推 */
-    .schedule-btn div.stButton > button {
-        height: 180px !important; 
-        margin-top: 100px !important; /* <--- 調整這裡，讓按鈕對齊左側儀表板的數字區 */
-        background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
-        border: 2px solid #B5D4F4;
-    }
-
     /* Gauge 標題樣式 */
     .gauge-title {
         text-align: center;
@@ -304,7 +326,7 @@ if st.session_state.current_page == '總覽首頁':
         st_echarts(options=gauge_option, height="360px")
 
     with top_col2:
-        # 使用一段隱形空間直接把按鈕往下推 (你可以微調 120px 這個數字來決定高低)
+        # 使用一段隱形空間直接把按鈕往下推
         st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
         
         if st.button("📅 點擊查看\n元大下半年行程", use_container_width=True, key="btn_schedule"):
@@ -343,7 +365,6 @@ elif st.session_state.current_page == "元大下半年行程":
     st.title("📅 2026 下半年 論壇 & 參訪團統整")
     st.markdown("---")
     
-    # 【重點注意】請將 '你的圖片檔名.png' 換成你實際的圖片檔案名稱
     try:
         st.image("yuantaschedule.png", use_container_width=True)
     except FileNotFoundError:
