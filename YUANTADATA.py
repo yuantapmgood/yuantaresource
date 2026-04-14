@@ -18,7 +18,7 @@ def set_background_from_local(image_path):
         background-position: center;
         background-repeat: no-repeat;
         /* 因為你的附圖資訊量很大，建議加上一層半透明的白色遮罩，才不會讓原本網站的字看不清楚 */
-        box-shadow: inset 0 0 0 2000px rgba(248, 250, 252, 0.85); 
+        box-shadow: inset 0 0 0 2000px rgba(248, 250, 252, 0.5); 
     }}
     </style>
     """
