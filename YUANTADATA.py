@@ -2,11 +2,34 @@ import streamlit as st
 import pandas as pd
 import os
 from streamlit_echarts import st_echarts
+import base64
 
+def set_background_from_local(image_path):
+    """讀取本地端圖片並設定為 Streamlit 背景"""
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode()
+    
+    # 注入 CSS
+    page_bg_img = f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/png;base64,{encoded_string}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        /* 因為你的附圖資訊量很大，建議加上一層半透明的白色遮罩，才不會讓原本網站的字看不清楚 */
+        box-shadow: inset 0 0 0 2000px rgba(248, 250, 252, 0.85); 
+    }}
+    </style>
+    """
+    st.markdown(page_bg_img, unsafe_allow_html=True)
 # ==========================================
 # 1. 頁面與視覺設定
 # ==========================================
 st.set_page_config(page_title="元大證券國金-資源彙整", page_icon="🏦", layout="wide")
+
+# 請將檔名替換成你實際儲存的圖片檔名
+set_background_from_local('yuantaschedule.png')
 
 st.markdown("""
     <style>
